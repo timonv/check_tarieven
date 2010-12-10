@@ -9,7 +9,7 @@ require 'open4'
 require 'iconv'
 require 'pp'
 require 'mechanize'
-require 'data.rb'
+require './data.rb'
 
                  
 #TODO: Cleanup
@@ -125,4 +125,3 @@ def test_kpn
 	agg = Aggregator.new
 	pp agg.check_site(KPN)
 end
-test_kpn
