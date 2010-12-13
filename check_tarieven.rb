@@ -68,25 +68,27 @@ class Aggregator
 
 			# Previous version was with ruby, now xpath, less code. 
 			nodes_with_euros.each do |node|
-				if not search_string == nil
-					candidate = node.ancestors("//table[contains(.,#{search_string})] | //div[contains(.,#{search_string})]").first
-				else
-					candidate = node.ancestors("//table | //div").first
-				end
+				candidate = node.ancestors("//table | //div").first
 				containers_array << candidate unless candidate == nil
+			end unless search_string
+
+			if search_string
+				#remove escapes
+				search_string.gsub!(/\\/) { ''}
+				containers_array << doc.search("//text()[contains(.,#{search_string})]").first
 			end
 
 			#Nodeset is an array, but doesn't act like on, really annoying.
 			containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
 			containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
 			containers_array.uniq!
-
 			containers_array.each do |node|
 				# If the container got hit > 1, its possibly tabular, otherwise, ditch it.
 				# grep is slow, but much easier on the eyes than the inject variant
 				if containers_freqs[node] > 1
 					containers_nodeset << node
 				end
+				containers_nodeset << node if search_string
 			end
 			raise "No hits found in #{url[1]}" if containers_nodeset.empty?
 
@@ -138,6 +140,11 @@ def test_kpn
 	pp agg.check_site(KPN)
 end
 
+def test_gsm_arena
+	agg = Aggregator.new
+	agg.check_site([GSMARENA[0],GSMARENA[1]],GSMARENA[2])
+end
+
 def do_all
 	all_data = []
 	agg = Aggregator.new
@@ -149,7 +156,7 @@ def do_all
 	end
 	all_data.each do |data|
 		if data
-			data[2] ? agg.check_site([data[0],data[1],data[2]) : agg.check_site(data)
+			data[2] ? agg.check_site([data[0],data[1]],data[2]) : agg.check_site(data)
 		end
 	end
 	return true

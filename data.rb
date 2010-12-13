@@ -18,8 +18,8 @@ TELFORT_UNLIMITED       = ["http://shop.telfort.nl/sim-only/informatie/unlimited
 TELFORT_SIM_ONLY        = ["http://shop.telfort.nl/sim-only/informatie/", "telfort_sim_only"]
 BEN                     = ["http://www.ben.nl/abonnementen", "ben"]
                         
-GSMARENA                = ["http://www.gsmarena.com/", "gsmarena"]
-ESATO                   = ["http://www.esato.com/phones/", "esato"]
+GSMARENA                = ["http://www.gsmarena.com/", "gsmarena", 'latest-phones']
+ESATO                   = ["http://www.esato.com/phones/", "esato", 'login']
                         
 INLOG_TMOBILE           = ["http://www.t-mobile.nl/my-t-mobile", "inlog_tmobile"]
 INLOG_KPN               = ["http://www.kpn.com/inloggen.htm", "inlog_kpn"]
