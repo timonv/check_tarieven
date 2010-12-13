@@ -28,6 +28,7 @@ class Aggregator
 		@ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
 		@agent = Mechanize.new
 		@agent.user_agent_alias = "Mac FireFox"
+		@agent.read_timeout = 5.0 # 5 seconds time out
 	end
 
 	# Set some email addresses for better debugging
@@ -56,62 +57,73 @@ class Aggregator
 	end
 
 	def check_site(url, search_string = nil)
-		page = @agent.get(url)
-		# notify_changed_site(site_arr, "URL target redirected") if redirect?(http, uri)
-		# response, body = http.get(uri.path)
-		doc = Nokogiri::HTML(page.parser.to_s)
-		nodes_with_euros = doc.search("//text()[contains(.,'€')]")
-		containers_array = []
+		begin
+			page = @agent.get(url[0])
+			# notify_changed_site(url, "URL target redirected") if redirect?(http, uri)
+			# response, body = http.get(uri.path)
+			doc = Nokogiri::HTML(page.parser.to_s)
+			nodes_with_euros = doc.search("//text()[contains(.,'€')]")
+			containers_array = []
+			raise Exception,  "no_euros_found #{url[1]}" if nodes_with_euros == []
 
-		# Previous version was with ruby, now xpath, less code. 
-		nodes_with_euros.each do |node|
-			if not search_string == nil
-				candidate = node.ancestors("//table[contains(.,#{search_string})] | //div[contains(.,#{search_string})]").first
-			else
-				candidate = node.ancestors("//table | //div").first
+			# Previous version was with ruby, now xpath, less code. 
+			nodes_with_euros.each do |node|
+				if not search_string == nil
+					candidate = node.ancestors("//table[contains(.,#{search_string})] | //div[contains(.,#{search_string})]").first
+				else
+					candidate = node.ancestors("//table | //div").first
+				end
+				containers_array << candidate unless candidate == nil
 			end
-			containers_array << candidate unless candidate == nil
+
+			#Nodeset is an array, but doesn't act like on, really annoying.
+			containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
+			containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
+			containers_array.uniq!
+
+			containers_array.each do |node|
+				# If the container got hit > 1, its possibly tabular, otherwise, ditch it.
+				# grep is slow, but much easier on the eyes than the inject variant
+				if containers_freqs[node] > 1
+					containers_nodeset << node
+				end
+			end
+			raise "No hits found in #{url[1]}" if containers_nodeset.empty?
+
+			#pp nodes_with_euros
+			#pp containers_array
+			#pp containers_nodeset
+
+			#check if content is different
+			if File.exists?(File.join(ROOT, "tariffs_" + url[1]))
+				diff = ""
+				status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + url[1])} -") do |pid, stdin, stdout, stderr|
+					stdin.puts containers_nodeset
+					stdin.close
+					diff = stdout.read
+				end
+				#sent mail if content is different
+				if status != 0
+					write "change detected."
+					notify_changed_site(url, diff)
+					pp "Data changed on #{url[1]}"
+				end
+			end
+			
+			#overwrite the old content with the new one
+			File.open(File.join(ROOT, "tariffs_" + url[1]), "w") do |f|
+				f.puts containers_nodeset
+			end
+
+			return containers_nodeset
+		rescue Timeout::Error => e
+			pp "#{e} on #{url[1]}"
+		rescue Exception => e
+			pp "#{e.to_s}"
+		else
+			pp "No errors on: #{url[1]}"
 		end
 
-		#Nodeset is an array, but doesn't act like on, really annoying.
-		containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
-		containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
-		containers_array.uniq!
-
-		containers_array.each do |node|
-			# If the container got hit > 1, its possibly tabular, otherwise, ditch it.
-			# grep is slow, but much easier on the eyes than the inject variant
-			if containers_freqs[node] > 1
-				containers_nodeset << node
-			end
-		end
-
-		# To make the algorithm rock solid, we should make the nodes_with_euros get checked on common ancestors too
-
-		#pp nodes_with_euros
-		#pp containers_array
-		#pp containers_nodeset
-		return containers_nodeset
-
-	 # #check if content is different
-	 # if File.exists?(File.join(ROOT, "tariffs_" + site_arr[1]))
-	 #   diff = ""
-	 #   status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + site_arr[1])} -") do |pid, stdin, stdout, stderr|
-	 #     stdin.puts new_content
-	 #     stdin.close
-	 #     diff = stdout.read
-	 #   end
-	 #   #sent mail if content is different
-	 #   if status != 0
-	 #     write "change detected."
-	 #     notify_changed_site(site_arr, diff)
-	 #   end
-	 # end
-	 # 
-	 # #overwrite the old content with the new one
-	 # File.open(File.join(ROOT, "tariffs_" + site_arr[1]), "w") do |f|
-	 #   f.puts new_content
-	 # end
 	end
 
 	def redirect?(http, uri)
@@ -124,4 +136,21 @@ end
 def test_kpn
 	agg = Aggregator.new
 	pp agg.check_site(KPN)
+end
+
+def do_all
+	all_data = []
+	agg = Aggregator.new
+	File.open("./data.rb") do |file|
+		file.each_line do |line|
+			line.to_s.sub!(/^\w+\s*=/,"")
+			all_data << eval(line)
+		end
+	end
+	all_data.each do |data|
+		if data
+			data[2] ? agg.check_site([data[0],data[1],data[2]) : agg.check_site(data)
+		end
+	end
+	return true
 end

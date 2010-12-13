@@ -1,28 +1,28 @@
-HI_MET_TOESTEL          = "http://www.hi.nl/Productinfo/Abonnement/Tarieven-Hi-Abonnement.htm"
-HI_SIM_ONLY             = "http://www.hi.nl/Productinfo/Hi-Simonly-abonnement.htm"
-T_MOBILE_RELAX          = "http://www.t-mobile.nl/mobiel-abonnement/tarieven"
-T_MOBILE_RELAX_ONLINE   = "http://www.t-mobile.nl/mobiel-abonnement/tarieven"
-T_MOBILE_RELAX_SIM_ONLY = "http://www.t-mobile.nl/mobiel-abonnement/tarieven"
-T_MOBILE_VOORDEELSIM    = "http://www.t-mobile.nl/mobiel-abonnement/tarieven"
-T_MOBILE_IPHONE         = "http://www.t-mobile.nl/mobiel-abonnement/tarieven"
-VODAFONE_BELLEN         = "http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bellen/"
-VODAFONE_BELLEN_SMS     = "http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bel_sms/"
-VODAFONE_BELLEN_SMS_WEB = "http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bel_sms_web"
-VODAFONE_SCHERP         = "http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/vodafone_scherp"
-VODAFONE_BELLEN_SMS_SO  = "http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/bel_sms/tarieven"
-VODAFONE_BELLEN_SMS_WEB_SO = "http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/bel_sms_web/tarieven"
-KPN                     = "http://www.kpn.com/is-bin/INTERSHOP.enfinity/WFS/KPN-B2C-Site/nl_NL/-/EUR/DDTProductDetail-ShowSubscriptionDL"
-KPN_SIM_ONLY            = "http://www.kpn.com/prive/mobiel/tarieven/Abonnementen.htm"
-TELFORT_MET_TOESTEL     = "http://shop.telfort.nl/abonnement/informatie/"
-TELFORT_UNLIMITED       = "http://shop.telfort.nl/sim-only/informatie/unlimited/"
-TELFORT_SIM_ONLY        = "http://shop.telfort.nl/sim-only/informatie/"
-BEN                     = "http://www.ben.nl/abonnementen"
+HI_MET_TOESTEL          = ["http://www.hi.nl/Productinfo/Abonnement/Tarieven-Hi-Abonnement.htm", "hi_met_toestel"]
+HI_SIM_ONLY             = ["http://www.hi.nl/Productinfo/Hi-Simonly-abonnement.htm", "hi_sim_only"]
+T_MOBILE_RELAX          = ["http://www.t-mobile.nl/mobiel-abonnement/tarieven", "t_mobile_relax"]
+T_MOBILE_RELAX_ONLINE   = ["http://www.t-mobile.nl/mobiel-abonnement/tarieven", "t_mobile_relax_online"]
+T_MOBILE_RELAX_SIM_ONLY = ["http://www.t-mobile.nl/mobiel-abonnement/tarieven", "t_mobile_relax_sim_only"]
+T_MOBILE_VOORDEELSIM    = ["http://www.t-mobile.nl/mobiel-abonnement/tarieven", "t_mobile_voordeelsim"]
+T_MOBILE_IPHONE         = ["http://www.t-mobile.nl/mobiel-abonnement/tarieven", "t_mobile_iphone"]
+VODAFONE_BELLEN         = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bellen/", "vodafone_bellen"]
+VODAFONE_BELLEN_SMS     = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bel_sms/", "vodafone_bellen_sms"]
+VODAFONE_BELLEN_SMS_WEB = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/abonnementen_met_toestel/bel_sms_web", "vodafone_bellen_sms_web"]
+VODAFONE_SCHERP         = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/vodafone_scherp", "vodafone_scherp"]
+VODAFONE_BELLEN_SMS_SO  = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/bel_sms/tarieven", "vodafone_bellen_sms_so"]
+VODAFONE_BELLEN_SMS_WEB_SO = ["http://www.vodafone.nl/mobiel_bellen/abonnementen/sim_only_abonnement/bel_sms_web/tarieven", "vodafone_bellen_sms_web_so"]
+KPN                     = ["http://www.kpn.com/is-bin/INTERSHOP.enfinity/WFS/KPN-B2C-Site/nl_NL/-/EUR/DDTProductDetail-ShowSubscriptionDL", "kpn"]
+KPN_SIM_ONLY            = ["http://www.kpn.com/prive/mobiel/tarieven/Abonnementen.htm", "kpn_sim_only"]
+TELFORT_MET_TOESTEL     = ["http://shop.telfort.nl/abonnement/informatie/", "telfort_met_toestel"]
+TELFORT_UNLIMITED       = ["http://shop.telfort.nl/sim-only/informatie/unlimited/", "telfort_unlimited"]
+TELFORT_SIM_ONLY        = ["http://shop.telfort.nl/sim-only/informatie/", "telfort_sim_only"]
+BEN                     = ["http://www.ben.nl/abonnementen", "ben"]
                         
-GSMARENA                = "http://www.gsmarena.com/"
-ESATO                   = "http://www.esato.com/phones/"
+GSMARENA                = ["http://www.gsmarena.com/", "gsmarena"]
+ESATO                   = ["http://www.esato.com/phones/", "esato"]
                         
-INLOG_TMOBILE           = "http://www.t-mobile.nl/my-t-mobile"
-INLOG_KPN               = "http://www.kpn.com/inloggen.htm"
-INLOG_HI                = "http://www.hi.nl/"
-INLOG_VODAFONE          = "https://my.vodafone.nl/prive/my_vodafone?errormessage=&errorcode="
-INLOG_TELFORT           = "https://www.telfort.nl/mijntelfort/mobiel/inloggen/"
+INLOG_TMOBILE           = ["http://www.t-mobile.nl/my-t-mobile", "inlog_tmobile"]
+INLOG_KPN               = ["http://www.kpn.com/inloggen.htm", "inlog_kpn"]
+INLOG_HI                = ["http://www.hi.nl/", "inlog_hi"]
+INLOG_VODAFONE          = ["https://my.vodafone.nl/prive/my_vodafone?errormessage=&errorcode=", "inlog_vodafone"]
+INLOG_TELFORT           = ["https://www.telfort.nl/mijntelfort/mobiel/inloggen/", "inlog_telfort"]
