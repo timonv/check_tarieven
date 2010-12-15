@@ -56,15 +56,19 @@ class Aggregator
 		end unless LOCAL
 	end
 
+	# Url = [ "url", "name" ]
+	# search_string = "string to search page with using xpath contains"
 	def check_site(url, search_string = nil)
 		begin
 			page = @agent.get(url[0])
+			raise "got redirected on #{url[1]}" if redirect?(url[0])
+
 			# notify_changed_site(url, "URL target redirected") if redirect?(http, uri)
 			# response, body = http.get(uri.path)
 			doc = Nokogiri::HTML(page.parser.to_s)
 			nodes_with_euros = doc.search("//text()[contains(.,'€')]")
 			containers_array = []
-			raise Exception,  "no_euros_found #{url[1]}" if nodes_with_euros == []
+			raise "no euros found #{url[1]}" if nodes_with_euros == []
 
 			# Previous version was with ruby, now xpath, less code. 
 			nodes_with_euros.each do |node|
@@ -90,7 +94,7 @@ class Aggregator
 				end
 				containers_nodeset << node if search_string
 			end
-			raise "No hits found in #{url[1]}" if containers_nodeset.empty?
+			raise "no hits found in #{url[1]}" if containers_nodeset.empty?
 
 			#pp nodes_with_euros
 			#pp containers_array
@@ -119,19 +123,20 @@ class Aggregator
 
 			return containers_nodeset
 		rescue Timeout::Error => e
-			pp "#{e} on #{url[1]}"
+			pp "#{e.to_s} on #{url[1]}"
+			# Mailings should go here
 		rescue Exception => e
-			pp "#{e.to_s}"
+			pp "#{e}"
+			# Mailing should go here
 		else
 			pp "No errors on: #{url[1]}"
 		end
 
 	end
 
-	def redirect?(http, uri)
-		resp = http.get(uri.path)
-		return true if resp.code != "200"
-		return false
+	def redirect?(uri)
+		http_response = Net::HTTP.get_response(URI.parse(uri))
+		http_response.kind_of?(Net::HTTPRedirection)
 	end
 end
 
