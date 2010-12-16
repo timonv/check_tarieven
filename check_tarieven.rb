@@ -89,6 +89,7 @@ class Aggregator
 			
 			# Refactored from double block
 			containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
+			containers_nodeset.uniq!
 			# pp containers_nodeset
 			raise "no hits found in #{url[1]}" if containers_nodeset.empty?
 
