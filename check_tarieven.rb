@@ -61,7 +61,8 @@ class Aggregator
 	def check_site(url, search_string = nil)
 		begin
 			page = @agent.get(url[0])
-			raise "got redirected on #{url[1]}" if redirect?(url[0])
+			# Couldnt get this to work properly. redirect? function should work, but doesn't. This works in java version, not in ruby version :/
+			# raise "got redirected on #{url[1]}" if @agent.response_code =~ /30\d/
 
 			# notify_changed_site(url, "URL target redirected") if redirect?(http, uri)
 			# response, body = http.get(uri.path)
@@ -88,7 +89,7 @@ class Aggregator
 			
 			# Refactored from double block
 			containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
-			pp containers_nodeset
+			# pp containers_nodeset
 			raise "no hits found in #{url[1]}" if containers_nodeset.empty?
 
 			#pp nodes_with_euros
@@ -133,7 +134,7 @@ class Aggregator
 
 	def redirect?(uri)
 		http_response = Net::HTTP.get_response(URI.parse(uri))
-		http_response.kind_of?(Net::HTTPRedirection)
+		http_response == Net::HTTPRedirection
 	end
 end
 
