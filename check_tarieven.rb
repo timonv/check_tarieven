@@ -85,15 +85,10 @@ class Aggregator
 			#Nodeset is an array, but doesn't act like on, really annoying.
 			containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
 			containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
-			containers_array.uniq!
-			containers_array.each do |node|
-				# If the container got hit > 1, its possibly tabular, otherwise, ditch it.
-				# grep is slow, but much easier on the eyes than the inject variant
-				if containers_freqs[node] > 1
-					containers_nodeset << node
-				end
-				containers_nodeset << node if search_string
-			end
+			
+			# Refactored from double block
+			containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
+			pp containers_nodeset
 			raise "no hits found in #{url[1]}" if containers_nodeset.empty?
 
 			#pp nodes_with_euros
@@ -123,10 +118,12 @@ class Aggregator
 
 			return containers_nodeset
 		rescue Timeout::Error => e
-			pp "#{e.to_s} on #{url[1]}"
+			pp e.message
+			pp e.backtrace
 			# Mailings should go here
 		rescue Exception => e
-			pp "#{e}"
+			pp e.message
+			pp e.backtrace
 			# Mailing should go here
 		else
 			pp "No errors on: #{url[1]}"
@@ -166,3 +163,5 @@ def do_all
 	end
 	return true
 end
+
+do_all
