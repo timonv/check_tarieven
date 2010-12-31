@@ -1,0 +1,30 @@
+#!/usr/bin/ruby
+
+require 'pp'
+# coding: utf-8
+
+# Simple script that converts the old data into the new. Saved for reference but unused.
+
+# Open file and iterate over each line, building a multidimensional array
+values = File.open("../data/data.rb").map do |line| 
+	after_eq = line.sub(/^\w+\s*=/,"").chomp
+	pp "Converted #{after_eq}"
+	eval after_eq
+end
+
+#pp values.class
+#pp values
+
+File.open("../data/data.csv", "w") do |file|
+	values.each do |value|
+		next unless value
+		line = "#{value[0]},#{value[1]}"
+		line << ",#{value[2]}" if value[2]
+		line << "\n"
+		file << line
+	end
+end
+
+pp "Succesfully converted ../data/data.rb to ../data/data.csv"
+
+
