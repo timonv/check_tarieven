@@ -37,7 +37,7 @@ module CheckTarives
 
 		# Creates a new aggregator object
 		# +TODO+::  Pass in data for nicer handling
-		def initialize
+		def initialize(url,name,search_string = nil)
 			# Logger to be implemented
 			#@logfile      = File.open "#{ROOT}/site_checker.log", 'a'
 			#@logfile.sync = true
@@ -46,6 +46,10 @@ module CheckTarives
 			@agent = Mechanize.new
 			@agent.user_agent_alias = "Mac FireFox"
 			@agent.read_timeout = 5.0 # 5 seconds time out
+
+			@page[:name] = name
+			@page[:url] = url
+			@page[:search_string] = search_string
 		end
 
 		# To be refactored
@@ -57,7 +61,6 @@ module CheckTarives
 		#	 smtp.send_message("Something went wrong!\n Error:\n#{e}\nStacktrace:\n#{pp e.backtrace.collect{|t|@ic.iconv(t)}}", 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
 		#	end unless LOCAL
 		#end
-
 		#def notify_changed_site(changed_site, diff)
 		#		msgstr = <<-END_OF_MESSAGE
 		#	From: Inspector Tariff <inspector_tariff@delaagsterekening.nl>
@@ -74,108 +77,66 @@ module CheckTarives
 		#end
 
 		# Checks a website for financial data
-		# url = [ "url", "name" ]
 		# search_string = "string to search page with using xpath contains"
-		# +TODO+::  Clean up, should take only a search string and options
-		# +TODO+::  Needs some refactoring
 		# +TODO+::  Needs proper error handling outside method
-		def check_site(url, search_string = nil)
-			begin
-				page = @agent.get(url[0])
-				# Couldnt get this to work properly. redirect? function should work, but doesn't. This works in java version, not in ruby version :/
-				# raise "got redirected on #{url[1]}" if @agent.response_code =~ /30\d/
+		def check_site
+			page = @agent.get(@page[:url])
+			raise "got redirected on #{@page[:name]}" if redirect?
 
-				# notify_changed_site(url, "URL target redirected") if redirect?(http, uri)
-				# response, body = http.get(uri.path)
-				doc = Nokogiri::HTML(page.parser.to_s)
-				nodes_with_euros = doc.search("//text()[contains(.,'€')]")
-				containers_array = []
-				raise "no euros found #{url[1]}" if nodes_with_euros == []
+			doc = Nokogiri::HTML(page.parser.to_s)
+			nodes_with_euros = doc.search("//text()[contains(.,'€')]")
+			containers_array = []
+			raise "no euros found #{@page[:name]}" if nodes_with_euros == []
 
-				# Previous version was with ruby, now xpath, less code. 
-				nodes_with_euros.each do |node|
-					candidate = node.ancestors("//table | //div").first
-					containers_array << candidate unless candidate == nil
-				end unless search_string
+			# Previous version was with ruby, now xpath, less code. 
+			containers_array = nodes_with_euros.collect { |node| node.ancestors("//table | //div").first } unless search_string
 
-				if search_string
-					#remove escapes
-					search_string.gsub!(/\\/) { ''}
-					containers_array << doc.search("//text()[contains(.,#{search_string})]").first
-				end
-
-				#Nodeset is an array, but doesn't act like on, really annoying.
-				containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
-				containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
-				
-				# Refactored from double block
-				containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
-				containers_nodeset.uniq!
-				# pp containers_nodeset
-				raise "no hits found in #{url[1]}" if containers_nodeset.empty?
-
-				#pp nodes_with_euros
-				#pp containers_array
-				#pp containers_nodeset
-
-				#check if content is different
-				if File.exists?(File.join(ROOT, "tariffs_" + url[1]))
-					diff = ""
-					status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + url[1])} -") do |pid, stdin, stdout, stderr|
-						stdin.puts containers_nodeset
-						stdin.close
-						diff = stdout.read
-					end
-					#sent mail if content is different
-					if status != 0
-						write "change detected."
-						notify_changed_site(url, diff)
-						pp "Data changed on #{url[1]}"
-					end
-				end
-				
-				#overwrite the old content with the new one
-				File.open(File.join(ROOT, "tariffs_" + url[1]), "w") do |f|
-					f.puts containers_nodeset
-				end
-
-				return containers_nodeset
-			rescue Timeout::Error => e
-				pp e.message
-				pp e.backtrace
-				# Mailings should go here
-			rescue Exception => e
-				pp e.message
-				pp e.backtrace
-				# Mailing should go here
-			else
-				pp "No errors on: #{url[1]}"
+			if search_string
+				#remove escapes
+				search_string.gsub!(/\\/) { ''}
+				containers_array << doc.search("//text()[contains(.,#{search_string})]").first
 			end
 
+			#Nodeset is an array, but doesn't act like on, really annoying.
+			containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
+			containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
+			
+			# Refactored from double block
+			containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
+			containers_nodeset.uniq!
+			raise "no hits found in #{@page[:name]}" if containers_nodeset.empty?
+
+			write_to_file(containers_nodeset)
+			
+			#overwrite the old content with the new one
 		end
 
 		# Checks if given uri is a redirect. Should work directly on an instance variable
 		# +TODO+::  Is broken
-		def redirect?(uri)
-			http_response = Net::HTTP.get_response(URI.parse(uri))
+		def redirect?
+			http_response = Net::HTTP.get_response(URI.parse(@page[:url]))
 			http_response == Net::HTTPRedirection
+		end
+
+		def write_to_file(data)
+#check if content is different
+			if File.exists?(File.join(ROOT, "tariffs_" + @page[:name]))
+				diff = ""
+				status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + @page[:name])} -") do |pid, stdin, stdout, stderr|
+					stdin.puts data
+					stdin.close
+					diff = stdout.read
+				end
+				#sent mail if content is different
+				if status != 0
+					write "change detected."
+					notify_changed_site(url, diff)
+					pp "Data changed on #{@page[:name]}"
+				end
+			end
+		end
+		File.open(File.join(ROOT, "tariffs_" + @page[:name]), "w") do |f|
+					f.puts containers_nodeset
 		end
 	end
 end
-
-#def do_all
-#		all_data = []
-#		agg = Aggregator.new
-#		File.open("./data.rb") do |file|
-#			file.each_line do |line|
-#				line.to_s.sub!(/^\w+\s*=/,"")
-#				all_data << eval(line)
-#			end
-#		end
-#		all_data.each do |data|
-#			if data
-#				data[2] ? agg.check_site([data[0],data[1]],data[2]) : agg.check_site(data)
-#			end
-#		end
-#		return true
-#end
