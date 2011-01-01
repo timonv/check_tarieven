@@ -7,42 +7,28 @@
 # Author:: Timon Vonk (mailto:timonv@gmail.com)
 # Copyright:: Copyright (c) 2010 delaagsterekening.nl
 # License:: Distributes under the same terms as Ruby
-#
+
 require 'nokogiri'
-# require 'open-uri'
 require 'net/smtp'
-# require 'net/http'
-# require 'net/https'
+require 'net/http'
 require 'open4'
-require 'iconv'
+#require 'iconv'
 require 'pp'
 require 'mechanize'
 
 # Require rest of gem
-# Data.rb is being remodelled to csv
-#require_relative '/data.rb'
-
                  
 #+TODO+::  Cleanup
 LOCAL = true
-ROOT = LOCAL ? "#{Doc.home}/log" : "#{Doc.home}/site_checker/log"
+ROOT = LOCAL ? "#{Dir.home}/log" : "#{Dir.home}/site_checker/log"
 
 # Contains classes for data aggregation of financial data
 module CheckTarives
 	# This is the main class that contains methods for patern matching
 	class Aggregator
-		def write(message)
-			@logfile.puts Time.now.strftime("%d-%m-%y %H:%M ") << message
-		end
-
 		# Creates a new aggregator object
 		# +TODO+::  Pass in data for nicer handling
 		def initialize(url,name,search_string = nil)
-			# Logger to be implemented
-			#@logfile      = File.open "#{ROOT}/site_checker.log", 'a'
-			#@logfile.sync = true
-
-			@ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
 			@agent = Mechanize.new
 			@agent.user_agent_alias = "Mac FireFox"
 			@agent.read_timeout = 5.0 # 5 seconds time out
@@ -77,7 +63,7 @@ module CheckTarives
 		#end
 
 		# Checks a website for financial data
-		# search_string = "string to search page with using xpath contains"
+		# @page[:search_string] = "string to search page with using xpath contains"
 		# +TODO+::  Needs proper error handling outside method
 		def check_site
 			page = @agent.get(@page[:url])
@@ -89,12 +75,12 @@ module CheckTarives
 			raise "no euros found #{@page[:name]}" if nodes_with_euros == []
 
 			# Previous version was with ruby, now xpath, less code. 
-			containers_array = nodes_with_euros.collect { |node| node.ancestors("//table | //div").first } unless search_string
+			containers_array = nodes_with_euros.collect { |node| node.ancestors("//table | //div").first } unless @page[:search_string]
 
-			if search_string
+			if @page[:search_string]
 				#remove escapes
-				search_string.gsub!(/\\/) { ''}
-				containers_array << doc.search("//text()[contains(.,#{search_string})]").first
+				@page[:search_string].gsub!(/\\/) { ''}
+				containers_array << doc.search("//text()[contains(.,#{@page[:search_string]})]").first
 			end
 
 			#Nodeset is an array, but doesn't act like on, really annoying.
@@ -112,14 +98,13 @@ module CheckTarives
 		end
 
 		# Checks if given uri is a redirect. Should work directly on an instance variable
-		# +TODO+::  Is broken
 		def redirect?
 			http_response = Net::HTTP.get_response(URI.parse(@page[:url]))
 			http_response == Net::HTTPRedirection
 		end
 
+		# Writes site data to file. Needs refactoring
 		def write_to_file(data)
-#check if content is different
 			if File.exists?(File.join(ROOT, "tariffs_" + @page[:name]))
 				diff = ""
 				status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + @page[:name])} -") do |pid, stdin, stdout, stderr|
@@ -136,7 +121,7 @@ module CheckTarives
 			end
 		end
 		File.open(File.join(ROOT, "tariffs_" + @page[:name]), "w") do |f|
-					f.puts containers_nodeset
+				f.puts containers_nodeset
 		end
 	end
 end
