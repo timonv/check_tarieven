@@ -15,6 +15,7 @@ require 'open4'
 #require 'iconv'
 require 'pp'
 require 'mechanize'
+require 'logger'
 
 # Require rest of gem
                  
@@ -27,28 +28,35 @@ module CheckTarives
 	# This is the main class that contains methods for patern matching
 	class Aggregator
 		# Creates a new aggregator object
-		# +TODO+::  Pass in data for nicer handling
 		def initialize(url,name,search_string = nil)
 			@agent = Mechanize.new
 			@agent.user_agent_alias = "Mac FireFox"
 			@agent.read_timeout = 5.0 # 5 seconds time out
+			@logger = Logger.new("#{ROOT}/error.log")
 
 			@page = Hash.new
-
 			@page[:name] ||= name
 			@page[:url] ||= url
 			@page[:search_string] ||= search_string
+			@retry = true
 		end
 
-		# To be refactored
-		#
-		#def handle_exception(e)
-		#	write "Exception caught: #{e}"
-		#	write "Backtrace: #{e.backtrace}"
-		#	Net::SMTP.start('localhost') do |smtp|
-		#	 smtp.send_message("Something went wrong!\n Error:\n#{e}\nStacktrace:\n#{pp e.backtrace.collect{|t|@ic.iconv(t)}}", 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
-		#	end unless LOCAL
-		#end
+		# If not local notifies that error occured and logs the error explicit
+		def handle_me(e)
+			@logger.error(e.message)
+			if !LOCAL
+				Net::SMTP.start('localhost') do |smtp|
+				 smtp.send_message("Something went wrong!\n
+													 Error:\n
+													 #{e}\n
+													 #Stacktrace:\n
+													 #{e.backtrace}", 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
+				end
+			else
+				pp "Error on #{@page[:name]}: " + e.message
+			end
+		end
+
 		#def notify_changed_site(changed_site, diff)
 		#		msgstr = <<-END_OF_MESSAGE
 		#	From: Inspector Tariff <inspector_tariff@delaagsterekening.nl>
@@ -92,24 +100,34 @@ module CheckTarives
 			# Refactored from double block
 			containers_nodeset = containers_freqs.collect { |node,freq| freq > 1 ? node : nil }
 			containers_nodeset.uniq!
-			raise "no hits found in #{@page[:name]}" if containers_nodeset.empty?
+			raise "no hits found in #{@page[:name]}" if (containers_nodeset.empty? || containers_nodeset == [nil])
 
 			write_to_file(containers_nodeset)
 			
-			#overwrite the old content with the new one
+		rescue Timeout::Error => e
+			# Only occures when site is down or script runs too often. So we try again once, then bail
+			retry if @retry
+			@retry = false
+			raise
+		rescue => e
+			handle_me(e)
 		end
 
 		# Checks if given uri is a redirect. Should work directly on an instance variable
 		def redirect?
 			http_response = Net::HTTP.get_response(URI.parse(@page[:url]))
 			http_response == Net::HTTPRedirection
+		rescue Net::HTTPBadResponse
+			# Dont do anything, as it is supposed to be raised.
 		end
 
 		# Writes site data to file. Needs refactoring
 		def write_to_file(data)
-			if File.exists?(File.join(ROOT, "tariffs_" + @page[:name]))
+			ref = File.join(ROOT, "tarrifs_" + @page[:name])
+
+			if File.exists?(ref)
 				diff = ""
-				status = Open4::popen4("diff #{File.join(ROOT, "tariffs_" + @page[:name])} -") do |pid, stdin, stdout, stderr|
+				status = Open4::popen4("diff #{ref} -") do |pid, stdin, stdout, stderr|
 					stdin.puts data
 					stdin.close
 					diff = stdout.read
@@ -118,11 +136,10 @@ module CheckTarives
 				if status != 0
 					write "change detected."
 					notify_changed_site(url, diff)
-					pp "Data changed on #{@page[:name]}"
 				end
-				File.open(File.join(ROOT, "tariffs_" + @page[:name]), "w") do |f|
-					f.puts data
-				end
+			end
+			File.open(ref, "w") do |f|
+				f.puts data
 			end
 		end
 	end

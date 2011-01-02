@@ -9,7 +9,7 @@ module CheckTarives
 		def self.get_pretty
 			data = []
 			CSV.foreach("../data/data.csv") do |line|
-				data << { :name => line[1], :url => line[0], :search_string => line[3] }
+				data << { :name => line[1], :url => line[0], :search_string => line[2] }
 			end
 			data
 		end

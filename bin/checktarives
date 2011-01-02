@@ -1,8 +1,13 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 #coding: utf-8
 
+# 1.9.2
 require_relative '../lib/aggregator.rb'
 require_relative '../lib/data.rb'
+
+# 1.8.x
+#require '../lib/aggregator.rb'
+#require '../lib/data.rb'
 
 sites_to_check = CheckTarives::Data.get_pretty 
 
@@ -12,6 +17,5 @@ sites_to_check.each do |site|
 	else
 		aggregator = CheckTarives::Aggregator.new(site[:url],site[:name])
 	end
-	pp "Checking site #{site[:name]}"
 	aggregator.check_site
 end
