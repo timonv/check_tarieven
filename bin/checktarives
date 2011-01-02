@@ -1,0 +1,17 @@
+#!/usr/bin/ruby
+#coding: utf-8
+
+require_relative '../lib/aggregator.rb'
+require_relative '../lib/data.rb'
+
+sites_to_check = CheckTarives::Data.get_pretty 
+
+sites_to_check.each do |site|
+	if site[:search_string] 
+		aggregator = CheckTarives::Aggregator.new(site[:url],site[:name], site[:search_string])
+	else
+		aggregator = CheckTarives::Aggregator.new(site[:url],site[:name])
+	end
+	pp "Checking site #{site[:name]}"
+	aggregator.check_site
+end

@@ -33,9 +33,11 @@ module CheckTarives
 			@agent.user_agent_alias = "Mac FireFox"
 			@agent.read_timeout = 5.0 # 5 seconds time out
 
-			@page[:name] = name
-			@page[:url] = url
-			@page[:search_string] = search_string
+			@page = Hash.new
+
+			@page[:name] ||= name
+			@page[:url] ||= url
+			@page[:search_string] ||= search_string
 		end
 
 		# To be refactored
@@ -118,10 +120,10 @@ module CheckTarives
 					notify_changed_site(url, diff)
 					pp "Data changed on #{@page[:name]}"
 				end
+				File.open(File.join(ROOT, "tariffs_" + @page[:name]), "w") do |f|
+					f.puts data
+				end
 			end
-		end
-		File.open(File.join(ROOT, "tariffs_" + @page[:name]), "w") do |f|
-				f.puts containers_nodeset
 		end
 	end
 end
