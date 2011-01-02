@@ -38,8 +38,14 @@
 				<div class="section-body">
 					<ul>
 					
+						<li><a href="./lib/data_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
+							class="thickbox" title="lib/data.rb">lib/data.rb</a></li>
+					
 						<li><a href="./lib/aggregator_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
 							class="thickbox" title="lib/aggregator.rb">lib/aggregator.rb</a></li>
+					
+						<li><a href="./spec/aggregator_spec_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
+							class="thickbox" title="spec/aggregator_spec.rb">spec/aggregator_spec.rb</a></li>
 					
 					</ul>
 				</div>
@@ -58,6 +64,8 @@
 			<div id="namespace-list-section" class="section">
 				<h3 class="section-header">Namespace</h3>
 				<ul class="link-list">
+					
+					<li><span class="type">MODULE</span> <a href="CheckTarives/Data.html">CheckTarives::Data</a></li>
 					
 					<li><span class="type">CLASS</span> <a href="CheckTarives/Aggregator.html">CheckTarives::Aggregator</a></li>
 					
@@ -104,6 +112,8 @@
 				
 					<li><a href="./CheckTarives/Aggregator.html">CheckTarives::Aggregator</a></li>
 				
+					<li><a href="./CheckTarives/Data.html">CheckTarives::Data</a></li>
+				
 				</ul>
 				<div id="no-class-search-results" style="display: none;">No matching classes.</div>
 			</div>
@@ -117,6 +127,11 @@
 
 		<div id="description">
 			<p>
+Simple class that maps the csv data in a pretty way to an array of hashes
+Because its a File it should NEVER be called multiple times at the same
+time. CSV is just lightweight and fast compared to a db.
+</p>
+<hr style="height: 1px"></hr><p>
 Contains classes for data aggregation of financial data
 </p>
 

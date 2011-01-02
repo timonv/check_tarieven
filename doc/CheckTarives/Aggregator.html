@@ -73,9 +73,19 @@
 					
 					<li><a href="#method-i-check_site">#check_site</a></li>
 					
+					<li><a href="#method-i-handle_me">#handle_me</a></li>
+					
+					<li><a href="#method-i-local%21">#local!</a></li>
+					
+					<li><a href="#method-i-log%21">#log!</a></li>
+					
+					<li><a href="#method-i-notify_changed_site">#notify_changed_site</a></li>
+					
 					<li><a href="#method-i-redirect%3F">#redirect?</a></li>
 					
-					<li><a href="#method-i-write">#write</a></li>
+					<li><a href="#method-i-remote%21">#remote!</a></li>
+					
+					<li><a href="#method-i-write_to_file">#write_to_file</a></li>
 					
 				</ul>
 			</div>
@@ -117,6 +127,8 @@
 				
 					<li><a href="../CheckTarives/Aggregator.html">CheckTarives::Aggregator</a></li>
 				
+					<li><a href="../CheckTarives/Data.html">CheckTarives::Data</a></li>
+				
 				</ul>
 				<div id="no-class-search-results" style="display: none;">No matching classes.</div>
 			</div>
@@ -153,7 +165,7 @@ This is the main class that contains methods for patern matching
 				<div class="method-heading">
 				
 					<span class="method-name">new</span><span
-						class="method-args">()</span>
+						class="method-args">(url,name,search_string = nil)</span>
 					<span class="method-click-advice">click to toggle source</span>
 				
 				</div>
@@ -163,29 +175,28 @@ This is the main class that contains methods for patern matching
 					<p>
 Creates a new aggregator object
 </p>
-<table>
-<tr><td valign="top"><tt>TODO</tt></td><td><p>
-Pass in data for nicer handling
-</p>
-</td></tr>
-</table>
 					
 
 					
 					<div class="method-source-code"
 						id="new-source">
 <pre>
-    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 40</span>
-40:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
-41:                         <span class="ruby-comment cmt"># Logger to be implemented</span>
-42:                         <span class="ruby-comment cmt">#@logfile      = File.open &quot;#{ROOT}/site_checker.log&quot;, 'a'</span>
-43:                         <span class="ruby-comment cmt">#@logfile.sync = true</span>
-44: 
-45:                         <span class="ruby-ivar">@ic</span> = <span class="ruby-constant">Iconv</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'UTF-8//IGNORE'</span>, <span class="ruby-value str">'UTF-8'</span>)
-46:                         <span class="ruby-ivar">@agent</span> = <span class="ruby-constant">Mechanize</span>.<span class="ruby-identifier">new</span>
-47:                         <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">user_agent_alias</span> = <span class="ruby-value str">&quot;Mac FireFox&quot;</span>
-48:                         <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">read_timeout</span> = <span class="ruby-value">5.0</span> <span class="ruby-comment cmt"># 5 seconds time out</span>
-49:                 <span class="ruby-keyword kw">end</span></pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 28</span>
+28:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">url</span>,<span class="ruby-identifier">name</span>,<span class="ruby-identifier">search_string</span> = <span class="ruby-keyword kw">nil</span>)
+29:                         <span class="ruby-ivar">@agent</span> = <span class="ruby-constant">Mechanize</span>.<span class="ruby-identifier">new</span>
+30:                         <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">user_agent_alias</span> = <span class="ruby-value str">&quot;Mac FireFox&quot;</span>
+31:                         <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">read_timeout</span> = <span class="ruby-value">5.0</span> <span class="ruby-comment cmt"># 5 seconds time out</span>
+32: 
+33:                         <span class="ruby-ivar">@page</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>
+34:                         <span class="ruby-ivar">@page</span>[<span class="ruby-value">:name</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">name</span>
+35:                         <span class="ruby-ivar">@page</span>[<span class="ruby-value">:url</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">url</span>
+36:                         <span class="ruby-ivar">@page</span>[<span class="ruby-value">:search_string</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">search_string</span>
+37: 
+38:                         <span class="ruby-ivar">@retry</span> = <span class="ruby-keyword kw">true</span>
+39: 
+40:                   <span class="ruby-comment cmt"># By default local</span>
+41:                         <span class="ruby-ivar">@local</span> = <span class="ruby-keyword kw">true</span>
+42:                 <span class="ruby-keyword kw">end</span></pre>
 					</div>
 					
 				</div>
@@ -208,7 +219,7 @@ Pass in data for nicer handling
 				<div class="method-heading">
 				
 					<span class="method-name">check_site</span><span
-						class="method-args">(url, search_string = nil)</span>
+						class="method-args">()</span>
 					<span class="method-click-advice">click to toggle source</span>
 				
 				</div>
@@ -216,19 +227,10 @@ Pass in data for nicer handling
 				<div class="method-description">
 					
 					<p>
-Checks a website for financial data url = [ &#8220;url&#8221;,
-&#8220;name&#8221; ] search_string = &#8220;string to search page with
-using xpath contains&#8220;
+Checks a website for financial data @page[:search_string] = &#8220;string
+to search page with using xpath contains&#8220;
 </p>
 <table>
-<tr><td valign="top"><tt>TODO</tt></td><td><p>
-Clean up, should take only a search string and options
-</p>
-</td></tr>
-<tr><td valign="top"><tt>TODO</tt></td><td><p>
-Needs some refactoring
-</p>
-</td></tr>
 <tr><td valign="top"><tt>TODO</tt></td><td><p>
 Needs proper error handling outside method
 </p>
@@ -240,81 +242,203 @@ Needs proper error handling outside method
 					<div class="method-source-code"
 						id="check-site-source">
 <pre>
-     <span class="ruby-comment cmt"># File lib/aggregator.rb, line 82</span>
- 82:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_site</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">search_string</span> = <span class="ruby-keyword kw">nil</span>)
- 83:                         <span class="ruby-keyword kw">begin</span>
- 84:                                 <span class="ruby-identifier">page</span> = <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">url</span>[<span class="ruby-value">0</span>])
- 85:                                 <span class="ruby-comment cmt"># Couldnt get this to work properly. redirect? function should work, but doesn't. This works in java version, not in ruby version :/</span>
- 86:                                 <span class="ruby-comment cmt"># raise &quot;got redirected on #{url[1]}&quot; if @agent.response_code =~ /30\d/</span>
- 87: 
- 88:                                 <span class="ruby-comment cmt"># notify_changed_site(url, &quot;URL target redirected&quot;) if redirect?(http, uri)</span>
- 89:                                 <span class="ruby-comment cmt"># response, body = http.get(uri.path)</span>
- 90:                                 <span class="ruby-identifier">doc</span> = <span class="ruby-constant">Nokogiri</span><span class="ruby-operator">::</span><span class="ruby-constant">HTML</span>(<span class="ruby-identifier">page</span>.<span class="ruby-identifier">parser</span>.<span class="ruby-identifier">to_s</span>)
- 91:                                 <span class="ruby-identifier">nodes_with_euros</span> = <span class="ruby-identifier">doc</span>.<span class="ruby-identifier">search</span>(<span class="ruby-value str">&quot;//text()[contains(.,'€')]&quot;</span>)
- 92:                                 <span class="ruby-identifier">containers_array</span> = []
- 93:                                 <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;no euros found #{url[1]}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">nodes_with_euros</span> <span class="ruby-operator">==</span> []
- 94: 
- 95:                                 <span class="ruby-comment cmt"># Previous version was with ruby, now xpath, less code. </span>
- 96:                                 <span class="ruby-identifier">nodes_with_euros</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">node</span><span class="ruby-operator">|</span>
- 97:                                         <span class="ruby-identifier">candidate</span> = <span class="ruby-identifier">node</span>.<span class="ruby-identifier">ancestors</span>(<span class="ruby-value str">&quot;//table | //div&quot;</span>).<span class="ruby-identifier">first</span>
- 98:                                         <span class="ruby-identifier">containers_array</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">candidate</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">candidate</span> <span class="ruby-operator">==</span> <span class="ruby-keyword kw">nil</span>
- 99:                                 <span class="ruby-keyword kw">end</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">search_string</span>
-100: 
-101:                                 <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">search_string</span>
-102:                                         <span class="ruby-comment cmt">#remove escapes</span>
-103:                                         <span class="ruby-identifier">search_string</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\\/</span>) { <span class="ruby-value str">''</span>}
-104:                                         <span class="ruby-identifier">containers_array</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">doc</span>.<span class="ruby-identifier">search</span>(<span class="ruby-node">&quot;//text()[contains(.,#{search_string})]&quot;</span>).<span class="ruby-identifier">first</span>
-105:                                 <span class="ruby-keyword kw">end</span>
+     <span class="ruby-comment cmt"># File lib/aggregator.rb, line 98</span>
+ 98:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_site</span>
+ 99:                         <span class="ruby-identifier">page</span> = <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">get</span>(<span class="ruby-ivar">@page</span>[<span class="ruby-value">:url</span>])
+100:                         <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;got redirected on #{@page[:name]}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">redirect?</span>
+101: 
+102:                         <span class="ruby-identifier">doc</span> = <span class="ruby-constant">Nokogiri</span><span class="ruby-operator">::</span><span class="ruby-constant">HTML</span>(<span class="ruby-identifier">page</span>.<span class="ruby-identifier">parser</span>.<span class="ruby-identifier">to_s</span>)
+103:                         <span class="ruby-identifier">nodes_with_euros</span> = <span class="ruby-identifier">doc</span>.<span class="ruby-identifier">search</span>(<span class="ruby-value str">&quot;//text()[contains(.,'€')]&quot;</span>)
+104:                         <span class="ruby-identifier">containers_array</span> = []
+105:                         <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;no euros found #{@page[:name]}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">nodes_with_euros</span> <span class="ruby-operator">==</span> []
 106: 
-107:                                 <span class="ruby-comment cmt">#Nodeset is an array, but doesn't act like on, really annoying.</span>
-108:                                 <span class="ruby-identifier">containers_nodeset</span> = <span class="ruby-constant">Nokogiri</span><span class="ruby-operator">::</span><span class="ruby-constant">XML</span><span class="ruby-operator">::</span><span class="ruby-constant">NodeSet</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">doc</span>)
-109:                                 <span class="ruby-identifier">containers_freqs</span> = <span class="ruby-identifier">containers_array</span>.<span class="ruby-identifier">inject</span>(<span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>)) { <span class="ruby-operator">|</span><span class="ruby-identifier">h</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">h</span>[<span class="ruby-identifier">v</span>] <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>; <span class="ruby-identifier">h</span>}
-110:                                 
-111:                                 <span class="ruby-comment cmt"># Refactored from double block</span>
-112:                                 <span class="ruby-identifier">containers_nodeset</span> = <span class="ruby-identifier">containers_freqs</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">node</span>,<span class="ruby-identifier">freq</span><span class="ruby-operator">|</span> <span class="ruby-identifier">freq</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">node</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span> }
-113:                                 <span class="ruby-identifier">containers_nodeset</span>.<span class="ruby-identifier">uniq!</span>
-114:                                 <span class="ruby-comment cmt"># pp containers_nodeset</span>
-115:                                 <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;no hits found in #{url[1]}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">containers_nodeset</span>.<span class="ruby-identifier">empty?</span>
-116: 
-117:                                 <span class="ruby-comment cmt">#pp nodes_with_euros</span>
-118:                                 <span class="ruby-comment cmt">#pp containers_array</span>
-119:                                 <span class="ruby-comment cmt">#pp containers_nodeset</span>
-120: 
-121:                                 <span class="ruby-comment cmt">#check if content is different</span>
-122:                                 <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">ROOT</span>, <span class="ruby-value str">&quot;tariffs_&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">url</span>[<span class="ruby-value">1</span>]))
-123:                                         <span class="ruby-identifier">diff</span> = <span class="ruby-value str">&quot;&quot;</span>
-124:                                         <span class="ruby-identifier">status</span> = <span class="ruby-constant">Open4</span><span class="ruby-operator">::</span><span class="ruby-identifier">popen4</span>(<span class="ruby-node">&quot;diff #{File.join(ROOT, &quot;tariffs_&quot; + url[1])} -&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">pid</span>, <span class="ruby-identifier">stdin</span>, <span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stderr</span><span class="ruby-operator">|</span>
-125:                                                 <span class="ruby-identifier">stdin</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">containers_nodeset</span>
-126:                                                 <span class="ruby-identifier">stdin</span>.<span class="ruby-identifier">close</span>
-127:                                                 <span class="ruby-identifier">diff</span> = <span class="ruby-identifier">stdout</span>.<span class="ruby-identifier">read</span>
-128:                                         <span class="ruby-keyword kw">end</span>
-129:                                         <span class="ruby-comment cmt">#sent mail if content is different</span>
-130:                                         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">status</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
-131:                                                 <span class="ruby-identifier">write</span> <span class="ruby-value str">&quot;change detected.&quot;</span>
-132:                                                 <span class="ruby-identifier">notify_changed_site</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">diff</span>)
-133:                                                 <span class="ruby-identifier">pp</span> <span class="ruby-node">&quot;Data changed on #{url[1]}&quot;</span>
-134:                                         <span class="ruby-keyword kw">end</span>
-135:                                 <span class="ruby-keyword kw">end</span>
-136:                                 
-137:                                 <span class="ruby-comment cmt">#overwrite the old content with the new one</span>
-138:                                 <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">ROOT</span>, <span class="ruby-value str">&quot;tariffs_&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">url</span>[<span class="ruby-value">1</span>]), <span class="ruby-value str">&quot;w&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
-139:                                         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">containers_nodeset</span>
-140:                                 <span class="ruby-keyword kw">end</span>
-141: 
-142:                                 <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">containers_nodeset</span>
-143:                         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Timeout</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
-144:                                 <span class="ruby-identifier">pp</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span>
-145:                                 <span class="ruby-identifier">pp</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">backtrace</span>
-146:                                 <span class="ruby-comment cmt"># Mailings should go here</span>
-147:                         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
-148:                                 <span class="ruby-identifier">pp</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span>
-149:                                 <span class="ruby-identifier">pp</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">backtrace</span>
-150:                                 <span class="ruby-comment cmt"># Mailing should go here</span>
-151:                         <span class="ruby-keyword kw">else</span>
-152:                                 <span class="ruby-identifier">pp</span> <span class="ruby-node">&quot;No errors on: #{url[1]}&quot;</span>
-153:                         <span class="ruby-keyword kw">end</span>
-154: 
-155:                 <span class="ruby-keyword kw">end</span></pre>
+107:                         <span class="ruby-comment cmt"># Previous version was with ruby, now xpath, less code. </span>
+108:                         <span class="ruby-identifier">containers_array</span> = <span class="ruby-identifier">nodes_with_euros</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">node</span><span class="ruby-operator">|</span> <span class="ruby-identifier">node</span>.<span class="ruby-identifier">ancestors</span>(<span class="ruby-value str">&quot;//table | //div&quot;</span>).<span class="ruby-identifier">first</span> } <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@page</span>[<span class="ruby-value">:search_string</span>]
+109: 
+110:                         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@page</span>[<span class="ruby-value">:search_string</span>]
+111:                                 <span class="ruby-comment cmt">#remove escapes</span>
+112:                                 <span class="ruby-ivar">@page</span>[<span class="ruby-value">:search_string</span>].<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\\/</span>) { <span class="ruby-value str">''</span>}
+113:                                 <span class="ruby-identifier">containers_array</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">doc</span>.<span class="ruby-identifier">search</span>(<span class="ruby-node">&quot;//text()[contains(.,#{@page[:search_string]})]&quot;</span>).<span class="ruby-identifier">first</span>
+114:                         <span class="ruby-keyword kw">end</span>
+115: 
+116:                         <span class="ruby-comment cmt">#Nodeset is an array, but doesn't act like one, really annoying.</span>
+117:                         <span class="ruby-identifier">containers_nodeset</span> = <span class="ruby-constant">Nokogiri</span><span class="ruby-operator">::</span><span class="ruby-constant">XML</span><span class="ruby-operator">::</span><span class="ruby-constant">NodeSet</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">doc</span>)
+118:                         <span class="ruby-identifier">containers_freqs</span> = <span class="ruby-identifier">containers_array</span>.<span class="ruby-identifier">inject</span>(<span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>)) { <span class="ruby-operator">|</span><span class="ruby-identifier">h</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">h</span>[<span class="ruby-identifier">v</span>] <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>; <span class="ruby-identifier">h</span>}
+119:                         
+120:                         <span class="ruby-comment cmt"># Refactored from double block</span>
+121:                         <span class="ruby-identifier">containers_nodeset</span> = <span class="ruby-identifier">containers_freqs</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">node</span>,<span class="ruby-identifier">freq</span><span class="ruby-operator">|</span> <span class="ruby-identifier">freq</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">node</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span> }
+122:                         <span class="ruby-identifier">containers_nodeset</span>.<span class="ruby-identifier">uniq!</span>
+123:                         <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;no hits found in #{@page[:name]}&quot;</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">containers_nodeset</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">containers_nodeset</span> <span class="ruby-operator">==</span> [<span class="ruby-keyword kw">nil</span>])
+124: 
+125:                         <span class="ruby-identifier">write_to_file</span>(<span class="ruby-identifier">containers_nodeset</span>)
+126:                         
+127:                 <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Timeout</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+128:                         <span class="ruby-comment cmt"># Only occures when site is down or script runs too often. So we try again once, then bail</span>
+129:                         <span class="ruby-keyword kw">retry</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@retry</span>
+130:                         <span class="ruby-ivar">@retry</span> = <span class="ruby-keyword kw">false</span>
+131:                         <span class="ruby-identifier">raise</span>
+132:                 <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+133:                         <span class="ruby-identifier">handle_me</span>(<span class="ruby-identifier">e</span>)
+134:                 <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+
+				
+			</div>
+
+		
+			<div id="handle-me-method" class="method-detail ">
+				<a name="method-i-handle_me"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">handle_me</span><span
+						class="method-args">(e)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+If not local notifies that error occured and logs the error explicit
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="handle-me-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 64</span>
+64:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_me</span>(<span class="ruby-identifier">e</span>)
+65:                         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">error</span>(<span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span>)
+66:                         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@local</span>
+67:                                 <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-value str">'localhost'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">smtp</span><span class="ruby-operator">|</span>
+68:                                  <span class="ruby-identifier">smtp</span>.<span class="ruby-identifier">send_message</span>(<span class="ruby-node">&quot;Something went wrong!\n
+69:                                                                                                          Error:\n
+70:                                                                                                          #{e}\n
+71:                                                                                                          #Stacktrace:\n
+72:                                                                                                          #{e.backtrace}&quot;</span>, <span class="ruby-value str">'inspector_tariff@delaagsterekening.nl'</span>, <span class="ruby-value str">'harm@delaagsterekening.nl'</span>)
+73:                                   <span class="ruby-identifier">pp</span> <span class="ruby-value str">&quot;mail&quot;</span>
+74:                                 <span class="ruby-keyword kw">end</span>
+75:                         <span class="ruby-keyword kw">else</span>
+76:                                 <span class="ruby-identifier">pp</span> <span class="ruby-node">&quot;Error on #{@page[:name]}: &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span>
+77:                         <span class="ruby-keyword kw">end</span>
+78:                 <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+
+				
+			</div>
+
+		
+			<div id="local--method" class="method-detail ">
+				<a name="method-i-local%21"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">local!</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Sets aggregator to local mode
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="local--source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 45</span>
+45:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">local!</span>
+46:                         <span class="ruby-ivar">@local</span> = <span class="ruby-keyword kw">true</span>
+47:                         <span class="ruby-ivar">@root</span> = <span class="ruby-node">&quot;#{Dir.home}/log&quot;</span>
+48:                         <span class="ruby-identifier">log!</span>
+49:                 <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+
+				
+			</div>
+
+		
+			<div id="log--method" class="method-detail ">
+				<a name="method-i-log%21"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">log!</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Instantiates logger
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="log--source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 59</span>
+59:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log!</span>
+60:                         <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;#{@root}/error.log&quot;</span>)
+61:                 <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+
+				
+			</div>
+
+		
+			<div id="notify-changed-site-method" class="method-detail ">
+				<a name="method-i-notify_changed_site"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">notify_changed_site</span><span
+						class="method-args">(changed_site, diff)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					
+					
+
+					
+					<div class="method-source-code"
+						id="notify-changed-site-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 80</span>
+80:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">notify_changed_site</span>(<span class="ruby-identifier">changed_site</span>, <span class="ruby-identifier">diff</span>)
+81:                                 <span class="ruby-identifier">msgstr</span> = <span class="ruby-value str">                        From: Inspector Tariff &lt;inspector_tariff@delaagsterekening.nl&gt;                        To: Harm Aarts &lt;harm@delaagsterekening.nl&gt;                        Subject: Tariffs of #{changed_site[1]} changed                        Do something! #{changed_site[0]}.\n                        Diff:                        #{@ic.iconv(diff)}</span>
+82:                         <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-value str">'localhost'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">smtp</span><span class="ruby-operator">|</span>
+83:                                 <span class="ruby-identifier">smtp</span>.<span class="ruby-identifier">send_message</span>(<span class="ruby-identifier">msgstr</span>, <span class="ruby-value str">'inspector_tariff@delaagsterekening.nl'</span>, <span class="ruby-value str">'harm@delaagsterekening.nl'</span>)
+84:                         <span class="ruby-keyword kw">end</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@local</span>
+85:                 <span class="ruby-keyword kw">end</span></pre>
 					</div>
 					
 				</div>
@@ -331,7 +455,7 @@ Needs proper error handling outside method
 				<div class="method-heading">
 				
 					<span class="method-name">redirect?</span><span
-						class="method-args">(uri)</span>
+						class="method-args">()</span>
 					<span class="method-click-advice">click to toggle source</span>
 				
 				</div>
@@ -339,26 +463,21 @@ Needs proper error handling outside method
 				<div class="method-description">
 					
 					<p>
-Checks if given uri is a redirect. Should work directly on an instance
-variable
+Checks if given uri is a redirect.
 </p>
-<table>
-<tr><td valign="top"><tt>TODO</tt></td><td><p>
-Is broken
-</p>
-</td></tr>
-</table>
 					
 
 					
 					<div class="method-source-code"
 						id="redirect--source">
 <pre>
-     <span class="ruby-comment cmt"># File lib/aggregator.rb, line 159</span>
-159:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect?</span>(<span class="ruby-identifier">uri</span>)
-160:                         <span class="ruby-identifier">http_response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">get_response</span>(<span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">uri</span>))
-161:                         <span class="ruby-identifier">http_response</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPRedirection</span>
-162:                 <span class="ruby-keyword kw">end</span></pre>
+     <span class="ruby-comment cmt"># File lib/aggregator.rb, line 137</span>
+137:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect?</span>
+138:                         <span class="ruby-identifier">http_response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">get_response</span>(<span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-ivar">@page</span>[<span class="ruby-value">:url</span>]))
+139:                         <span class="ruby-identifier">http_response</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPRedirection</span>
+140:                 <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPBadResponse</span>
+141:                         <span class="ruby-comment cmt"># Dont do anything, as it is supposed to be raised.</span>
+142:                 <span class="ruby-keyword kw">end</span></pre>
 					</div>
 					
 				</div>
@@ -369,30 +488,87 @@ Is broken
 			</div>
 
 		
-			<div id="write-method" class="method-detail ">
-				<a name="method-i-write"></a>
+			<div id="remote--method" class="method-detail ">
+				<a name="method-i-remote%21"></a>
 
 				<div class="method-heading">
 				
-					<span class="method-name">write</span><span
-						class="method-args">(message)</span>
+					<span class="method-name">remote!</span><span
+						class="method-args">()</span>
 					<span class="method-click-advice">click to toggle source</span>
 				
 				</div>
 
 				<div class="method-description">
 					
-					
+					<p>
+Sets aggregator to remote (eg server) mode
+</p>
 					
 
 					
 					<div class="method-source-code"
-						id="write-source">
+						id="remote--source">
 <pre>
-    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 34</span>
-34:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">message</span>)
-35:                         <span class="ruby-ivar">@logfile</span>.<span class="ruby-identifier">puts</span> <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">strftime</span>(<span class="ruby-value str">&quot;%d-%m-%y %H:%M &quot;</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">message</span>
-36:                 <span class="ruby-keyword kw">end</span></pre>
+    <span class="ruby-comment cmt"># File lib/aggregator.rb, line 52</span>
+52:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remote!</span>
+53:                         <span class="ruby-ivar">@local</span> = <span class="ruby-keyword kw">false</span>
+54:                         <span class="ruby-ivar">@root</span> = <span class="ruby-node">&quot;#{Dir.home}/site_checker/log&quot;</span>
+55:                         <span class="ruby-identifier">log!</span>
+56:                 <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+
+				
+			</div>
+
+		
+			<div id="write-to-file-method" class="method-detail ">
+				<a name="method-i-write_to_file"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">write_to_file</span><span
+						class="method-args">(data)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Writes site data to file.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="write-to-file-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/aggregator.rb, line 145</span>
+145:                 <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write_to_file</span>(<span class="ruby-identifier">data</span>)
+146:                         <span class="ruby-identifier">ref</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-ivar">@root</span>, <span class="ruby-value str">&quot;tarrifs_&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@page</span>[<span class="ruby-value">:name</span>])
+147: 
+148:                         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-identifier">ref</span>)
+149:                                 <span class="ruby-identifier">diff</span> = <span class="ruby-value str">&quot;&quot;</span>
+150:                                 <span class="ruby-identifier">status</span> = <span class="ruby-constant">Open4</span><span class="ruby-operator">::</span><span class="ruby-identifier">popen4</span>(<span class="ruby-node">&quot;diff #{ref} -&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">pid</span>, <span class="ruby-identifier">stdin</span>, <span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stderr</span><span class="ruby-operator">|</span>
+151:                                         <span class="ruby-identifier">stdin</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">data</span>
+152:                                         <span class="ruby-identifier">stdin</span>.<span class="ruby-identifier">close</span>
+153:                                         <span class="ruby-identifier">diff</span> = <span class="ruby-identifier">stdout</span>.<span class="ruby-identifier">read</span>
+154:                                 <span class="ruby-keyword kw">end</span>
+155:                                 <span class="ruby-comment cmt">#sent mail if content is different</span>
+156:                                 <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">status</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+157:                                         <span class="ruby-identifier">write</span> <span class="ruby-value str">&quot;change detected.&quot;</span>
+158:                                         <span class="ruby-identifier">notify_changed_site</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">diff</span>)
+159:                                 <span class="ruby-keyword kw">end</span>
+160:                         <span class="ruby-keyword kw">end</span>
+161:                         <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">ref</span>, <span class="ruby-value str">&quot;w&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+162:                                 <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">data</span>
+163:                         <span class="ruby-keyword kw">end</span>
+164:                 <span class="ruby-keyword kw">end</span></pre>
 					</div>
 					
 				</div>

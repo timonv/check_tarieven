@@ -113,7 +113,7 @@ module CheckTarives
 				containers_array << doc.search("//text()[contains(.,#{@page[:search_string]})]").first
 			end
 
-			#Nodeset is an array, but doesn't act like on, really annoying.
+			#Nodeset is an array, but doesn't act like one, really annoying.
 			containers_nodeset = Nokogiri::XML::NodeSet.new(doc)
 			containers_freqs = containers_array.inject(Hash.new(0)) { |h,v| h[v] += 1; h}
 			
@@ -133,7 +133,7 @@ module CheckTarives
 			handle_me(e)
 		end
 
-		# Checks if given uri is a redirect. Should work directly on an instance variable
+		# Checks if given uri is a redirect.
 		def redirect?
 			http_response = Net::HTTP.get_response(URI.parse(@page[:url]))
 			http_response == Net::HTTPRedirection
@@ -141,7 +141,7 @@ module CheckTarives
 			# Dont do anything, as it is supposed to be raised.
 		end
 
-		# Writes site data to file. Needs refactoring
+		# Writes site data to file.
 		def write_to_file(data)
 			ref = File.join(@root, "tarrifs_" + @page[:name])
 

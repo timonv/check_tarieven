@@ -1,5 +1,10 @@
-Wed, 29 Dec 2010 15:24:17 +0100
+Sun, 02 Jan 2011 14:39:17 +0100
+./bin/checktarives	Sun, 02 Jan 2011 14:01:23 +0100
+./bin/convert_data	Sun, 02 Jan 2011 13:18:49 +0100
 ./bin/web_interface.rb	Fri, 10 Dec 2010 00:50:41 +0100
 ./README	Thu, 09 Dec 2010 20:04:26 +0100
-./lib/aggregator.rb	Wed, 29 Dec 2010 15:24:14 +0100
+./lib/data.rb	Sun, 02 Jan 2011 12:17:16 +0100
+./lib/aggregator.rb	Sun, 02 Jan 2011 14:37:57 +0100
 ./data/data.rb	Mon, 13 Dec 2010 15:28:11 +0100
+./spec/aggregator_spec.rb	Sun, 02 Jan 2011 14:36:47 +0100
+./spec/spec_helper.rb	Sun, 02 Jan 2011 14:21:14 +0100
