@@ -19,9 +19,6 @@ require 'logger'
 
 # Require rest of gem
                  
-#+TODO+::  Cleanup
-LOCAL = true
-ROOT = LOCAL ? "#{Dir.home}/log" : "#{Dir.home}/site_checker/log"
 
 # Contains classes for data aggregation of financial data
 module CheckTarives
@@ -32,45 +29,68 @@ module CheckTarives
 			@agent = Mechanize.new
 			@agent.user_agent_alias = "Mac FireFox"
 			@agent.read_timeout = 5.0 # 5 seconds time out
-			@logger = Logger.new("#{ROOT}/error.log")
 
 			@page = Hash.new
 			@page[:name] ||= name
 			@page[:url] ||= url
 			@page[:search_string] ||= search_string
+
 			@retry = true
+
+		  # By default local
+			@local = true
+		end
+
+		# Sets aggregator to local mode
+		def local!
+			@local = true
+			@root = "#{Dir.home}/log"
+			log!
+		end
+
+		# Sets aggregator to remote (eg server) mode
+		def remote!
+			@local = false
+			@root = "#{Dir.home}/site_checker/log"
+			log!
+		end
+
+		# Instantiates logger
+	  def log!
+			@logger = Logger.new("#{@root}/error.log")
 		end
 
 		# If not local notifies that error occured and logs the error explicit
 		def handle_me(e)
 			@logger.error(e.message)
-			if !LOCAL
+			if !@local
 				Net::SMTP.start('localhost') do |smtp|
 				 smtp.send_message("Something went wrong!\n
 													 Error:\n
 													 #{e}\n
 													 #Stacktrace:\n
 													 #{e.backtrace}", 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
+				  pp "mail"
 				end
 			else
 				pp "Error on #{@page[:name]}: " + e.message
 			end
 		end
 
-		#def notify_changed_site(changed_site, diff)
-		#		msgstr = <<-END_OF_MESSAGE
-		#	From: Inspector Tariff <inspector_tariff@delaagsterekening.nl>
-		#	To: Harm Aarts <harm@delaagsterekening.nl>
-		#	Subject: Tariffs of #{changed_site[1]} changed
+		def notify_changed_site(changed_site, diff)
+				msgstr = <<-END_OF_MESSAGE
+			From: Inspector Tariff <inspector_tariff@delaagsterekening.nl>
+			To: Harm Aarts <harm@delaagsterekening.nl>
+			Subject: Tariffs of #{changed_site[1]} changed
 
-		#	Do something! #{changed_site[0]}.\n
-		#	Diff:
-		#	#{@ic.iconv(diff)}
-		#	END_OF_MESSAGE
-		#	Net::SMTP.start('localhost') do |smtp|
-		#		smtp.send_message(msgstr, 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
-		#	end unless LOCAL
-		#end
+			Do something! #{changed_site[0]}.\n
+			Diff:
+			#{@ic.iconv(diff)}
+			END_OF_MESSAGE
+			Net::SMTP.start('localhost') do |smtp|
+				smtp.send_message(msgstr, 'inspector_tariff@delaagsterekening.nl', 'harm@delaagsterekening.nl')
+			end unless @local
+		end
 
 		# Checks a website for financial data
 		# @page[:search_string] = "string to search page with using xpath contains"
@@ -123,7 +143,7 @@ module CheckTarives
 
 		# Writes site data to file. Needs refactoring
 		def write_to_file(data)
-			ref = File.join(ROOT, "tarrifs_" + @page[:name])
+			ref = File.join(@root, "tarrifs_" + @page[:name])
 
 			if File.exists?(ref)
 				diff = ""

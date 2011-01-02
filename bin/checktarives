@@ -11,11 +11,18 @@ require_relative '../lib/data.rb'
 
 sites_to_check = CheckTarives::Data.get_pretty 
 
+if ARGV.include?("--local")
+	local = true
+elsif ARGV.include?("--remote")
+	local = false
+end
+
 sites_to_check.each do |site|
 	if site[:search_string] 
 		aggregator = CheckTarives::Aggregator.new(site[:url],site[:name], site[:search_string])
 	else
 		aggregator = CheckTarives::Aggregator.new(site[:url],site[:name])
 	end
+	aggregator.local! if local
 	aggregator.check_site
 end
